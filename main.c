@@ -23,67 +23,76 @@ int	main(int ac, char **av)
 	int		i;
 	int		j;
 
-	read = readline("minishell~$ ");
-	i = 0;
-	j = 0;
-	case_q = 0;
-	case_dq = 0;
-	cmd = (char *)calloc(1000, sizeof(*cmd));
-	if (!cmd)
-		return (0);
-	var = (char *)calloc(1000, sizeof(*var));
-	if (!cmd)
-		return (0);
-	cmd_split = ft_split(read, ' ');
-	cmd = ft_strjoin(cmd, cmd_split[0]);
-	i = ft_strlen(cmd);
-	while (read[i])
+	while (1)
 	{
-		if (read[i] == '\"' && case_dq == 0)
-			case_dq = 1;
-		else if (read[i] == '\"' && case_dq == 1)
-			case_dq = 0;
-		else if (read[i] == '\'' && case_q == 0 && case_dq != 1)
-			case_q = 1;
-		else if (read[i] == '\'' && case_q == 1)
-			case_q = 0;
-		else if (read[i] == '$' && case_q == 0)
+
+		read = readline("minishell~$ ");
+		i = 0;
+		j = 0;
+		case_q = 0;
+		case_dq = 0;
+		cmd = (char *)calloc(1000, sizeof(*cmd));
+		if (!cmd)
+			return (0);
+		var = (char *)calloc(1000, sizeof(*var));
+		if (!cmd)
+			return (0);
+		cmd_split = ft_split(read, ' ');
+		cmd = ft_strjoin(cmd, cmd_split[0]);
+		i = ft_strlen(cmd);
+		while (read[i])
 		{
-			j = i + 1;
-			while (read[j] && read[j] != '\'' && read[j] != '\"' && read[j] != ' '
-				&& read[j] != '$')
-				j++;
-			j -= i;
-			var = ft_memcpy(var, read + i + 1, j - 1);
-			if (getenv(var))
-				cmd = ft_strjoin(cmd, getenv(var));
-			else
+			if (read[i] == '\"' && case_dq == 0 && case_q != 1)
+			{
+				cmd = ft_strjoin(cmd, "\""); // leave the q or dq in place
+				case_dq = 1;
+			}
+			else if (read[i] == '\"' && case_dq == 1)
+			{
+				cmd = ft_strjoin(cmd, "\""); // leave the q or dq in place
+				case_dq = 0;
+			}
+			else if (read[i] == '\'' && case_q == 0 && case_dq != 1)
+			{
+				cmd = ft_strjoin(cmd, "'"); // leave the q or dq in place
+				case_q = 1;
+			}
+			else if (read[i] == '\'' && case_q == 1)
+			{
+				cmd = ft_strjoin(cmd, "'"); // leave the q or dq in place
+				case_q = 0;
+			}
+			else if (read[i] == '$' && case_q == 0)
+			{
+				j = i + 1;
+				while (read[j] && read[j] != '\'' && read[j] != '\"' && read[j] != ' '
+					&& read[j] != '$')
+					j++;
+				j -= i;
+				var = ft_memcpy(var, read + i + 1, j - 1);
+				if (getenv(var))
+					cmd = ft_strjoin(cmd, getenv(var));
+				else
+					cmd = ft_strjoin(cmd, " ");
+
+				i += j - 1;
+			}
+			else if (read[i] == ' ')
 				cmd = ft_strjoin(cmd, " ");
+			else if (read[i] == '\'' && case_dq == 1)
+				cmd = ft_strjoin(cmd, "\1'");
+			else
+			{
+				char *m;
+				m = (char *)calloc(2, sizeof(*m));
+				*m = read[i];
+				cmd = ft_strjoin(cmd, m);
+			}
+			i++;
 
-			i += j - 1;
 		}
-		else if (read[i] == ' ')
-			cmd = ft_strjoin(cmd, " ");
-		else if (read[i] == '\'' && case_dq == 1)
-			cmd = ft_strjoin(cmd, "\1'");
-		else
-		{
-			char *m;
-			m = (char *)calloc(2, sizeof(*m));
-			*m = read[i];
-			cmd = ft_strjoin(cmd, m);
-		}
-		i++;
-
+		printf("%s\n", cmd + 5);
+		free(cmd);
+		free(read);
 	}
-	printf("%s\n", cmd);
-	// free(cmd);
-	// cmd = NULL;
-	// while (cmd_split[i])
-	// {
-	// 	free(cmd_split[i]);
-	// 	cmd_split[i] = NULL;
-	// 	i++;
-	// }
-	// free(cmd_split);
 }
